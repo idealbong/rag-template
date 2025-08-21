@@ -14,14 +14,15 @@ class VectorStoreAdapter(Protocol):
     def count(self) -> int: ...
 
 
-def make_vector_store_adapter() -> VectorStoreAdapter:
-    vector_db = os.getenv("VECTOR_DB", "faiss").lower()
+def make_vector_store_adapter() -> VectorStoreAdapter | None:
+    vector_db = os.getenv("VECTOR_DB", "none").lower()
     embedding_model = os.getenv("EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B")
     if vector_db == "faiss":
         from app.services.faiss_adapter import FaissAdapter
         index_dir = os.getenv("FAISS_INDEX_DIR", "data/faiss_index")
         return FaissAdapter(index_dir=index_dir, embedding_model_name=embedding_model)
-    raise ValueError(f"Unsupported VECTOR_DB: {vector_db}")
+    print(f"Unsupported VECTOR_DB: {vector_db}")
+    return None
 
 # ───────────────────────────────────────────────────────────────
 # RetrievalService → List[DocumentChunk] 반환
@@ -29,7 +30,8 @@ def make_vector_store_adapter() -> VectorStoreAdapter:
 class RetrievalService:
     def __init__(self, vector_store: Optional[VectorStoreAdapter] = None):
         self.vector_store = vector_store or make_vector_store_adapter()
-        self._initialize()
+        if not self.vector_store:
+            self._initialize()
 
     def _initialize(self):
         try:
@@ -43,7 +45,7 @@ class RetrievalService:
     async def retrieve(self, question: str, top_k: int = 5) -> List[DocumentChunk]:
         """질문과 유사한 문서 청크를 검색하고, DocumentChunk 리스트로 반환."""
         if not self.vector_store:
-            raise RuntimeError("Vector store not loaded. Build or configure your index first.")
+            return []
         try:
             loop = asyncio.get_event_loop()
             chunks = await loop.run_in_executor(None, self.vector_store.retrieve, question, top_k)
