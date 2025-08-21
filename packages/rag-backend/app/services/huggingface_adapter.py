@@ -1,16 +1,16 @@
 from dotenv import load_dotenv
 import os
 
-from transformers import BitsAndBytesConfig
 from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
 
 # .env 파일 로드
 load_dotenv()
-
 class HuggingfaceAdapter():
     def __init__(self):
         # Initialize Huggingface specific settings
         self.model = None
+        self.model_id = os.getenv("HUGGINGFACE_MODEL_ID", "kakaocorp/kanana-1.5-2.1b-instruct-2505")
+        self.model_name = self.model_id.split("/")[-1]
         self.model_loaded = False
             
         
@@ -18,15 +18,8 @@ class HuggingfaceAdapter():
         # Load the model from Huggingface
             
         try:
-            quantization_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_compute_dtype="float16",
-                bnb_4bit_use_double_quant=True,
-            )
-            
             llm = HuggingFacePipeline.from_model_id(
-                model_id="HuggingFaceH4/zephyr-7b-beta",
+                model_id=self.model_id,
                 task="text-generation",
                 pipeline_kwargs=dict(
                     max_new_tokens=512,
@@ -34,7 +27,6 @@ class HuggingfaceAdapter():
                     repetition_penalty=1.03,
                     return_full_text=False,
                 ),
-                model_kwargs={"quantization_config": quantization_config},
             )
 
             self.model = ChatHuggingFace(llm=llm)
@@ -49,3 +41,12 @@ class HuggingfaceAdapter():
             self.model_loaded = False
             
         return self.model
+    
+    def get_info(self) -> dict:
+        """모델 정보를 반환합니다."""
+        return {
+            "model_provider": "huggingface",
+            "model_id": self.model_id,
+            "status": "loaded" if self.model_loaded else "template_mode",
+            "model_name": self.model_name
+        }
