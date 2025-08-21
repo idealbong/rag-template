@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import generate, retrieve
+from app.routers import generate, retrieve, status
 from dotenv import load_dotenv
 
 # Load .env into os.environ at startup
@@ -33,3 +33,5 @@ app.include_router(generate.router, prefix="/api")
 # Optionally expose /api/retrieve (admin/internal)
 if os.getenv("EXPOSE_RETRIEVE_ENDPOINT", "false").lower() == "true":
     app.include_router(retrieve.router, prefix="/api")
+    
+app.include_router(status.router, prefix="/api")
