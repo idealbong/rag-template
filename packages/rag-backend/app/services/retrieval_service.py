@@ -2,6 +2,7 @@ import os
 import asyncio
 from typing import List, Protocol, Optional
 from app.models import DocumentChunk
+from .void_retrieval_adapter import VoidRetrievalAdapter
 
 
 # ───────────────────────────────────────────────────────────────
@@ -14,7 +15,7 @@ class VectorStoreAdapter(Protocol):
     def count(self) -> int: ...
 
 
-def make_vector_store_adapter() -> VectorStoreAdapter | None:
+def make_vector_store_adapter() -> VectorStoreAdapter:
     vector_db = os.getenv("VECTOR_DB", "none").lower()
     embedding_model = os.getenv("EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B")
     if vector_db == "faiss":
@@ -22,7 +23,7 @@ def make_vector_store_adapter() -> VectorStoreAdapter | None:
         index_dir = os.getenv("FAISS_INDEX_DIR", "data/faiss_index")
         return FaissAdapter(index_dir=index_dir, embedding_model_name=embedding_model)
     print(f"Unsupported VECTOR_DB: {vector_db}")
-    return None
+    return VoidRetrievalAdapter()
 
 # ───────────────────────────────────────────────────────────────
 # RetrievalService → List[DocumentChunk] 반환
@@ -30,8 +31,7 @@ def make_vector_store_adapter() -> VectorStoreAdapter | None:
 class RetrievalService:
     def __init__(self, vector_store: Optional[VectorStoreAdapter] = None):
         self.vector_store = vector_store or make_vector_store_adapter()
-        if not self.vector_store:
-            self._initialize()
+        self._initialize()
 
     def _initialize(self):
         try:
@@ -39,8 +39,8 @@ class RetrievalService:
             self.vector_store.load()
             print(f"✅ Vector store loaded. count={self.vector_store.count()}")
         except Exception as e:
-            print(f"❌ Error initializing SearchService: {e}")
-            self.vector_store = None
+            print(f"❌ Error initializing RetrievalService: {e}")
+            self.vector_store = VoidRetrievalAdapter()
 
     async def retrieve(self, question: str, top_k: int = 5) -> List[DocumentChunk]:
         """질문과 유사한 문서 청크를 검색하고, DocumentChunk 리스트로 반환."""
@@ -57,7 +57,7 @@ class RetrievalService:
             raise RuntimeError(f"문서 검색 중 오류 발생: {str(e)}")
 
     def get_index_info(self) -> dict:
-        if not self.vector_store:
+        if not self.vector_store._loaded:
             return {"status": "not_loaded", "count": 0}
         try:
             return {
