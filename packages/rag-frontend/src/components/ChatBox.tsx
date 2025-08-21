@@ -36,6 +36,25 @@ export default function ChatBox() {
   const startTimeRef = useRef<number>(0);
   const latestTranscriptRef = useRef<string>("");
 
+  // 🔊 음성 출력 함수
+  const speak = (text: string) => {
+    if (!text) return;
+    const synth = window.speechSynthesis;
+    synth.cancel(); // 이전 읽기 중단
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ko-KR";
+    utterance.rate = 1; // 속도 (0.1 ~ 10)
+    utterance.pitch = 1; // 음 높이 (0 ~ 2)
+    synth.speak(utterance);
+  };
+
+  // answer가 바뀌면 자동 읽어주기
+  useEffect(() => {
+    if (answer) {
+      speak(answer);
+    }
+  }, [answer]);
+
   const handleAsk = async (forcedQuestion?: string) => {
     const q = (forcedQuestion ?? question).trim();
     if (!q) return;
