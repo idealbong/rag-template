@@ -206,4 +206,8 @@ pip install -r packages/rag-backend/requirements.txt
 
 ---
 
+## Contributors
+
+- Sangbong Lee
+
 **License**: MIT
