@@ -79,7 +79,7 @@ def build_chunks(input_path: str, output_path: str, max_chars: int = 500):
             for chunk_index, chunk_text in enumerate(chunks):
                 chunk = {
                     "id": str(uuid4()),
-                    "chunk_text": chunk_text,
+                    "chunk_text": f"{title}\n\n{chunk_text}",
                     "chunk_index": chunk_index,
                     "title": title,
                     "url": url,
