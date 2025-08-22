@@ -46,17 +46,40 @@ def save_pages_as_jsonl(pages, output_path="data/wiki.jsonl"):
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
     print(f"✅ JSONL 저장 완료: {len(pages)}개 문서 → {output_path}")
 
+def save_single_page_as_jsonl(page, output_path="data/wiki_single.jsonl"):
+    if not page.exists():
+        print(f"❌ 문서 '{page.title}' 가 존재하지 않습니다.")
+        return
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        record = {
+            "title": page.title,
+            "url": page.fullurl,
+            "text": page.text.strip(),
+            "source_type": "Wikipedia"
+        }
+        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    print(f"✅ 단일 문서 저장 완료: {page.title} → {output_path}")
+
 def main():
-    p = argparse.ArgumentParser(description="Collect Wikipedia pages in a category")
-    p.add_argument("--category", type=str, required=True,
-                   help="Category title to collect pages from. ex)'분류:조선_세종'")
+    p = argparse.ArgumentParser(description="Collect Wikipedia pages by category or single page")
+    group = p.add_mutually_exclusive_group(required=True)
+    group.add_argument("--category", type=str,
+                       help="Category title to collect pages from. ex) '분류:조선_세종'")
+    group.add_argument("--page", type=str,
+                       help="Single page title to collect. ex) '세종대왕'")
     p.add_argument("--max_depth", type=int, default=3,
-                   help="Maximum depth to traverse subcategories")
+                   help="Maximum depth to traverse subcategories (category mode only)")
     p.add_argument("--output", type=str, default="data/wiki.jsonl",
                    help="Output JSONL file path")
     args = p.parse_args()
-    pages = get_pages_in_category(args.category, args.max_depth)
-    save_pages_as_jsonl(pages)
-    
+
+    if args.page:
+        page = wiki.page(args.page)
+        save_single_page_as_jsonl(page, args.output)
+    else:
+        pages = get_pages_in_category(args.category, args.max_depth)
+        save_pages_as_jsonl(pages, args.output)
+
 if __name__ == "__main__":
     main()
