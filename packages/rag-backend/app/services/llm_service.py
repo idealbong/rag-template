@@ -8,6 +8,8 @@ from langchain_core.prompt_values import ChatPromptValue
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import BaseMessage
 
+from app.models import DocumentChunk
+
 # .env 파일 로드
 load_dotenv()
   
@@ -18,6 +20,10 @@ class LLMModelAdapter(Protocol):
     """LLM Model adapters must implement these methods."""
     def load(self) -> BaseChatModel: ...
     def get_info(self) -> dict: ...
+    
+def make_context(reference_chunks: List[DocumentChunk]) -> str:
+    """문서 청크들을 하나의 문자열로 결합합니다."""
+    return "\n\n".join([chunk.chunk_text for chunk in reference_chunks])
 
 
 def make_llm_model_adapter(model_provider: str) -> LLMModelAdapter:
@@ -68,7 +74,7 @@ class LLMService:
         absolute_path = os.path.join(backend_dir, relative_path)
         return os.path.normpath(absolute_path)
     
-    def create_prompt(self, question: str, context_chunks: List[str]) -> ChatPromptValue:
+    def create_prompt(self, question: str, reference_documents: List[DocumentChunk]) -> ChatPromptValue:
         """
         질문과 컨텍스트를 바탕으로 프롬프트를 생성합니다.
         
@@ -80,19 +86,19 @@ class LLMService:
             생성된 프롬프트
         """
         # 컨텍스트 결합
-        context = "\n\n".join(context_chunks)
+        context = make_context(reference_documents)
         
         # Qwen 모델에 최적화된 프롬프트 템플릿
         prompt = self.prompt_template.invoke({"context": context, "question": question})
         
         # 프롬프트가 너무 길면 자르기
-        len_chunks = len(context_chunks)
+        len_chunks = len(reference_documents)
         while len(prompt.to_string()) > self.context_length:
             len_chunks -= 1
             if len_chunks <= 0:
                 print("❗️ Context is too long, cannot generate prompt.")
                 return "죄송합니다. 너무 긴 문서입니다."
-            context = "\n\n".join(context_chunks[:len_chunks])
+            context = make_context(reference_documents[:len_chunks])
             prompt = self.prompt_template.invoke({"context": context, "question": question})
         return prompt
     

@@ -26,6 +26,8 @@ class RetrievalResponse(BaseModel):
 class GenerateRequest(BaseModel):
     query: str
     use_rag: bool = True
+    candidate_k: int = int(os.getenv("RERANK_CANDIDATES", 10))  # Default to 10 if not set
+    top_k: int = int(os.getenv("TOP_K", 3))  # Default to 3 if not set
     max_tokens: int = int(os.getenv("LLM_MAX_TOKENS", 512))  # Default to 512 if not set
 
 class GenerateResponse(BaseModel):
