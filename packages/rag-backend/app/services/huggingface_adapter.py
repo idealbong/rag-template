@@ -9,7 +9,7 @@ class HuggingfaceAdapter():
     def __init__(self):
         # Initialize Huggingface specific settings
         self.model = None
-        self.model_id = os.getenv("HUGGINGFACE_MODEL_ID", "google/gemma-3-270m-it")
+        self.model_id = os.getenv("HUGGINGFACE_MODEL_ID", "Qwen/Qwen2.5-0.5B-Instruct")
         self.model_name = self.model_id.split("/")[-1]
         self.model_loaded = False
             

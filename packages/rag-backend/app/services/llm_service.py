@@ -37,7 +37,7 @@ def make_llm_model_adapter(model_provider: str) -> LLMModelAdapter:
 
 class LLMService:
     def __init__(self, model: Optional[BaseChatModel] = None):
-        self.model_provider = os.getenv("LLM_PROVIDER", "gguf").lower()
+        self.model_provider = os.getenv("LLM_PROVIDER", "huggingface").lower()
         if model:
             self.model = model
         else:
