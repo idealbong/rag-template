@@ -4,7 +4,7 @@ export type DocumentChunk = {
   title: string;
   url: string;
   source_type: string;
-  score: number;
+  score?: number; // Optional score field
 };
 
 export type GenerateResponse = {

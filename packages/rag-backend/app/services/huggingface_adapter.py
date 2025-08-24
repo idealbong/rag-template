@@ -9,7 +9,7 @@ class HuggingfaceAdapter():
     def __init__(self):
         # Initialize Huggingface specific settings
         self.model = None
-        self.model_id = os.getenv("HUGGINGFACE_MODEL_ID", "kakaocorp/kanana-1.5-2.1b-instruct-2505")
+        self.model_id = os.getenv("HUGGINGFACE_MODEL_ID", "Qwen/Qwen2.5-0.5B-Instruct")
         self.model_name = self.model_id.split("/")[-1]
         self.model_loaded = False
             
@@ -23,7 +23,9 @@ class HuggingfaceAdapter():
                 task="text-generation",
                 pipeline_kwargs=dict(
                     max_new_tokens=512,
-                    do_sample=False,
+                    do_sample=True,
+                    temperature=0.7,
+                    top_p=0.9,
                     repetition_penalty=1.03,
                     return_full_text=False,
                 ),

@@ -16,22 +16,23 @@ async def generate(request: GenerateRequest):
     try:
         start_time = time.time()
         
-        context_chunks = []
         reference_documents = []
         
         if request.use_rag:
             # RAG를 사용하는 경우 관련 문서 검색
-            search_results = await retrieval_service.retrieve(
-                question=request.query,
-                top_k=5
+            reference_documents = await retrieval_service.retrieve(
+                query=request.query,
+                candidate_k=request.candidate_k,
+                top_k=request.top_k,
+                source_type=request.source_type,
+                title=request.title,
+                url=request.url
             )
-            context_chunks = [chunk.chunk_text for chunk in search_results]
-            reference_documents = search_results  # 참고 문서 정보 저장
         
         # 프롬프트 생성
         prompt = llm_service.create_prompt(
             question=request.query,
-            context_chunks=context_chunks
+            reference_documents=reference_documents
         )
         
         # LLM을 이용한 답변 생성

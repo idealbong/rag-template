@@ -48,19 +48,37 @@ class FaissAdapter:
         # 작은 distance가 더 가깝다는 가정 하에
         return 1.0 / (1.0 + float(distance))
 
-    def retrieve(self, query: str, k: int) -> List[DocumentChunk]:
+    def retrieve(self,
+                query: str,
+                top_k: int = int(os.getenv("TOP_K", 3)),  # Default to 3 if not set
+                source_type: Optional[str] = None,  # Optional filter by source type
+                title: Optional[str] = None,  # Optional filter by title keyword
+                url: Optional[str] = None  # Optional filter by URL keyword
+            ) -> List[DocumentChunk]:
         self._ensure_loaded()
-        doc_distance = self._store.similarity_search_with_score(query, k=k)
+        
+        # 필터 조건 구성
+        if not source_type and not title and not url:
+            filter = None
+        else:
+            filter = {}
+            if source_type:
+                filter['source_type'] = source_type
+            if title:
+                filter['title'] = {"$regex": title, "$options": "i"}
+            if url:
+                filter['url'] = {"$regex": url, "$options": "i"}
+        
+        # FAISS에서 유사한 문서 검색
+        retrieved_docs = self._store.similarity_search(query, k=top_k, filter=filter)
         chunks: List[DocumentChunk] = []
-        for doc, distance in doc_distance:
-            score = self._to_score(distance)
+        for doc in retrieved_docs:
             chunk = DocumentChunk(
                 chunk_text=doc.page_content,
                 chunk_index=doc.metadata.get('chunk_index', 0),
                 title=doc.metadata.get('title', 'Unknown'),
                 url=doc.metadata.get('url', ''),
-                source_type=doc.metadata.get('source_type', 'Unknown'),
-                score=round(score, 4)
+                source_type=doc.metadata.get('source_type', 'Unknown')
             )
             chunks.append(chunk)
         return chunks

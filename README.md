@@ -181,6 +181,9 @@ source .venv/bin/activate
 
 # install backend dependent packages(FastAPI/uvicorn, etc.)
 pip install -r packages/rag-backend/requirements.txt
+
+# Run the following command to log in and obtain your Hugging Face access token:
+hf login
 ```
 
 ## Quick Start (scaffold)
@@ -205,5 +208,9 @@ pip install -r packages/rag-backend/requirements.txt
    ```
 
 ---
+
+## Contributors
+
+- Sangbong Lee
 
 **License**: MIT
