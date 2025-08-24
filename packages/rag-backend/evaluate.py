@@ -80,7 +80,7 @@ def evaluate_via_api(questions: List[Dict[str, Any]]) -> Dict[str, Any]:
             # ★ 서버 스펙에 맞는 POST JSON 바디
             resp = sess.post(
                 eval_api_url,
-                json={"query": prompt, "use_rag": True, "max_tokens": 1024},
+                json={"query": prompt, "use_rag": True, "candidate_k": 10, "top_k": 4, "max_tokens": 1024},
                 timeout=60,
             )
             t1 = time.perf_counter()
@@ -98,6 +98,7 @@ def evaluate_via_api(questions: List[Dict[str, Any]]) -> Dict[str, Any]:
             failures.append({"q": q["question"], "error": f"json_error: {e}", "body": resp.text[:500]})
             continue
 
+        print(data)
         raw_answer = data.get("response", "")
         elapsed_ms = data.get("elapsed_ms")
         if isinstance(elapsed_ms, int):

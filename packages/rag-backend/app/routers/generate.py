@@ -21,8 +21,12 @@ async def generate(request: GenerateRequest):
         if request.use_rag:
             # RAG를 사용하는 경우 관련 문서 검색
             reference_documents = await retrieval_service.retrieve(
-                question=request.query,
-                top_k=request.top_k or 5
+                query=request.query,
+                candidate_k=request.candidate_k,
+                top_k=request.top_k,
+                source_type=request.source_type,
+                title=request.title,
+                url=request.url
             )
         
         # 프롬프트 생성
