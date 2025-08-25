@@ -13,7 +13,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 # 설정
 INDEX_DIR = "data/faiss_index"
 EMBEDDING_MODEL_NAME = "Qwen/Qwen3-Embedding-0.6B"
-BATCH_SIZE = 32  # GPU 메모리에 따라 조정 가능
+BATCH_SIZE = 4  # GPU 메모리에 따라 조정 가능
 MAX_WORKERS = min(4, mp.cpu_count())  # CPU 코어 수에 따라 조정
 USE_CUDA = os.getenv("USE_CUDA", "false").lower() == "true"
 FAISS_DISTANCE_STRATEGY = 'cosine'  # or 'euclidean'
@@ -71,8 +71,8 @@ def main():
                    help="Batch size for embedding generation")
     p.add_argument("--max_workers", type=int, default=MAX_WORKERS,
                    help="Number of parallel workers for processing")
-    p.add_argument("--use_cuda", type=bool, default=USE_CUDA,
-                   help="Use CUDA for GPU acceleration")
+    p.add_argument("--device", type=str, default='cpu',
+                   help="Use cuda for GPU acceleration/mps for Mac GPU/cpu for CPU")
     p.add_argument("--faiss_distance_strategy", type=str, default=FAISS_DISTANCE_STRATEGY,
                    help="Distance strategy for FAISS (cosine or euclidean)")
     args = p.parse_args()
@@ -84,7 +84,7 @@ def main():
 
     print(f"🤖 Loading embedding model: {args.embedding_model}")
     # GPU 사용 설정 및 최적화
-    device = 'cuda' if args.use_cuda else 'mps'
+    device = args.device
     print(f"🔧 Using device: {device}")
     
     # GPU 메모리 최적화 설정
