@@ -183,7 +183,7 @@ source .venv/bin/activate
 pip install -r packages/rag-backend/requirements.txt
 
 # Run the following command to log in and obtain your Hugging Face access token:
-hf login
+hf auth login
 ```
 
 ## Quick Start (scaffold)
