@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def main():
-    host = os.getenv("HOST", "0.0.0.0")
+    host = os.getenv("SERVER_HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8000"))
     reload = os.getenv("RELOAD", "true").lower() == "true"
 
