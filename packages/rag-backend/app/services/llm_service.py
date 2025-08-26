@@ -20,6 +20,7 @@ class LLMModelAdapter(Protocol):
     """LLM Model adapters must implement these methods."""
     def load(self) -> BaseChatModel: ...
     def get_info(self) -> dict: ...
+    def get_invoke_kwargs(self) -> dict: ...
     
 def make_context(reference_chunks: List[DocumentChunk]) -> str:
     """문서 청크들을 하나의 문자열로 결합합니다."""
@@ -33,6 +34,9 @@ def make_llm_model_adapter(model_provider: str) -> LLMModelAdapter:
     elif model_provider == "huggingface":
         from app.services.huggingface_adapter import HuggingfaceAdapter
         return HuggingfaceAdapter()
+    elif model_provider == "openai":
+        from app.services.openai_adapter import OpenAIAdapter
+        return OpenAIAdapter()
     raise ValueError(f"Unsupported Model Provider: {model_provider}")
 
 class LLMService:
@@ -53,8 +57,6 @@ class LLMService:
         
         self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", 512))
         self.context_length = int(os.getenv("LLM_CONTEXT_LENGTH", 2048))
-        self.temperature = float(os.getenv("LLM_TEMPERATURE", 0.3))
-        self.top_p = float(os.getenv("LLM_TOP_P", 0.8))
         self.system_prompt = os.getenv("LLM_SYSTEM_PROMPT", "당신은 질문 내용에 답변할 수 있는 전문가입니다. 주어진 문서를 바탕으로 정확하고 도움이 되는 답변을 한국어로 제공해주세요. 문서에 없는 내용은 추측하지 말고, 문서 내용만을 바탕으로 답변해주세요.")
         self.user_prompt_template = os.getenv("LLM_USER_PROMPT_TEMPLATE", "참고 문서:\n{context}\n\n질문: {question}:")
         self.prompt_template = ChatPromptTemplate.from_messages(
@@ -143,11 +145,11 @@ class LLMService:
     def _generate_sync(self, prompt: ChatPromptValue, max_tokens: int) -> BaseMessage:
         """동기 방식으로 답변을 생성합니다."""
         try:
+            kwargs = self.model_adapter.get_invoke_kwargs() if self.model_adapter else {}
             response = self.model.invoke(
                 prompt,
                 max_tokens=max_tokens,
-                temperature=self.temperature,
-                top_p=self.top_p
+                **kwargs,
             )
             
             return response

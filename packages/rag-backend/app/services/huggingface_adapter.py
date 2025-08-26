@@ -52,3 +52,10 @@ class HuggingfaceAdapter():
             "status": "loaded" if self.model_loaded else "template_mode",
             "model_name": self.model_name
         }
+        
+    def get_invoke_kwargs(self) -> dict:
+        """LLM 호출 시 사용할 추가 인자를 반환합니다."""
+        return {
+            "temperature": float(os.getenv("LLM_TEMPERATURE", 0.3)),
+            "top_p": float(os.getenv("LLM_TOP_P", 0.8)),
+        }

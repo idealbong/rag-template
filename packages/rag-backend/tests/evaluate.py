@@ -119,6 +119,8 @@ def evaluate_via_api(questions: List[Dict[str, Any]]) -> Dict[str, Any]:
 
         if ok:
             correct += 1
+        
+        time.sleep(0.1)  # 너무 빠른 요청을 피하기 위해 약간 대기
 
     total = len(questions)
     accuracy = correct / total if total else 0.0
