@@ -13,7 +13,7 @@ load_dotenv()
 host = os.getenv("HOST", "127.0.0.1")  # 요청 보낼 때는 127.0.0.1 추천
 port = int(os.getenv("PORT", "8000"))
 eval_api_url = f"http://{host}:{port}/api/generate"
-eval_data_path = os.getenv("EVAL_DATA_PATH", "data/rag-evaluations.jsonl")
+eval_data_path = os.getenv("EVAL_DATA_PATH", "rag-evaluations.jsonl")
 
 # 1. 평가 문항 로드 (JSONL: {"question":..., "choices":[...], "answer":"..."} per line)
 def load_questions(path: str) -> List[Dict[str, Any]]:
