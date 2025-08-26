@@ -6,14 +6,17 @@ from dotenv import load_dotenv
 
 # Load .env into os.environ at startup
 load_dotenv()
-FRONTEND_HOST = os.getenv("FRONTEND_HOST", "http://localhost:5173")
+
+# 여러 개 호스트 허용, 콤마로 구분
+FRONTEND_HOSTS = os.getenv("FRONTEND_HOSTS", "http://localhost:5173")
+allow_origins = [host.strip() for host in FRONTEND_HOSTS.split(",")]
 
 app = FastAPI(title="rag-backend")
 
 # CORS 설정 (프론트엔드와의 통신을 위해)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_HOST],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
