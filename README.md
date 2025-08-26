@@ -7,7 +7,7 @@ Focus: clear **contracts** and **separation of concerns**. Implementation is int
 
 ```text
 packages/
-  rag-data/        # Ingest & chunk → SQLite catalog + FAISS index (artifacts/)
+  rag-data/        # Ingest & chunk → wikipedia 데이터 수집 + chunking + FAISS index
   rag-backend/     # Unified FastAPI backend: /, /health, /docs, /redoc, /api/generate (+ optional /api/retrieve)
   rag-frontend/    # Minimal Vite+React UI calling /api/generate
 ```
@@ -15,7 +15,7 @@ packages/
 ### Why this split?
 
 - **rag-data** produces FAISS index that are **read-only** for runtime services.
-- **rag-backend** orchestrates retrieval + prompt + LLM and returns **answer + citations** (and can expose `/api/retrieve` for internal tuning).
+- **rag-backend** orchestrates retrieval + prompt + LLM and returns **answer + reference documents** (and can expose `/api/retrieve` for internal tuning).
 - **rag-frontend** shows the answer and references.
 
 ## Data
@@ -141,7 +141,7 @@ packages/
 ```
 
 - `query` *(string, required)*: 검색 질의
-- `candidate_k` *(integer, default: 10)*: 1차 후보 수
+- `candidate_k` *(integer, default: 10)*: Reranking 전 1차 후보 수
 - `top_k` *(integer, default: 3)*: 최종 반환 수
 
 #### Response 200
