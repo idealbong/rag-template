@@ -15,6 +15,7 @@ class RetrievalRequest(BaseModel):
     url: Optional[str] = None  # Optional filter by URL keyword
 
 class DocumentChunk(BaseModel):
+    id: str
     chunk_text: str
     chunk_index: int
     title: str

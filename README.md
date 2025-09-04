@@ -209,6 +209,82 @@ hf auth login
 
 ---
 
+### Backend: Evaluate
+
+RAG/MCQ 품질을 **로컬에서 자동 평가**할 수 있습니다.  
+평가 스크립트: `packages/rag-backend/tests/evaluate.py`
+
+#### 준비물
+
+- 백엔드 서버 실행 중 (`packages/rag-backend/run_server.py`)
+- 평가용 데이터:
+  - `data/chunks.jsonl` (참조 문서)
+  - `rag-goldensets.jsonl` (RAG 골든셋)
+  - `rag-evaluations.jsonl` (MCQ 평가 세트, 선택)
+
+#### 실행 방법
+
+RAG 평가
+
+```bash
+cd packages/rag-backend/tests
+# 기본: /api/generate(use_rag=true)의 reference_documents로 평가
+python evaluate.py \
+  --jsonl rag-evaluations.jsonl \
+  --base_url http://localhost:8000
+
+# 상세 로그(샘플별 비교 출력)
+python evaluate.py \
+  --jsonl rag-evaluations.jsonl \
+  --base_url http://localhost:8000 \
+  --verbose
+
+# (옵션) /api/retrieve 기반으로 평가
+python evaluate.py \
+  --jsonl rag-evaluations.jsonl \
+  --base_url http://localhost:8000 \
+  --retrieval-source retrieve
+````
+
+출력 예시
+
+```json
+{
+  "mode": "rag",
+  "result": {
+    "retrieval_source": "generate",
+    "retrieval": {
+      "precision@k_mean": 0.444,
+      "recall@k_mean": 0.708,
+      "mrr_mean": 0.75
+    },
+    "generation": {
+      "relevance_mean": 0.917,
+      "faithfulness_mean": 0.833
+    },
+    "neg_violations": []
+  },
+  "elapsed_s": 42.0
+}
+```
+
+- Retrieval 지표: `precision@k`, `recall@k`, `mrr`
+- Generation 지표: `relevance`, `faithfulness`
+- `--verbose` 옵션 시 각 샘플의 정답/응답 비교, must\_cite 위반, negative\_case 매칭 여부까지 확인 가능
+
+MCQ(객관식 문제) 평가
+
+```bash
+python evaluate.py \
+  --jsonl mcq-evaluations.jsonl \
+  --base_url http://localhost:8000 \
+  --task mcq \
+  --verbose
+```
+
+- 모델 응답의 `[정답] ...` 패턴을 파싱하여 정확도(accuracy)와 지연(latency) 지표 출력
+- 샘플별 예측 결과와 정답 비교를 상세 확인 가능
+
 ## Contributors
 
 - Sangbong Lee
