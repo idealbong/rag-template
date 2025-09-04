@@ -74,6 +74,7 @@ class FaissAdapter:
         chunks: List[DocumentChunk] = []
         for doc in retrieved_docs:
             chunk = DocumentChunk(
+                id=doc.metadata.get('id', ''),
                 chunk_text=doc.page_content,
                 chunk_index=doc.metadata.get('chunk_index', 0),
                 title=doc.metadata.get('title', 'Unknown'),

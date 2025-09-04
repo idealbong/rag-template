@@ -30,7 +30,7 @@ def build_documents(chunks: list[dict]) -> list[Document]:
             documents.append(Document(
                 page_content=chunk_text,
                 metadata={
-                    "chunk_id": i,
+                    "id": chunk.get("id", str(i)),
                     "chunk_index": chunk.get("chunk_index", 0),
                     "title": chunk.get("title", ""),
                     "url": chunk.get("url", ""),
