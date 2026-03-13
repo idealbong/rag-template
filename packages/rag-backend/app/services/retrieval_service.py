@@ -27,7 +27,7 @@ class VectorStoreAdapter(Protocol):
 
 
 def make_vector_store_adapter() -> VectorStoreAdapter:
-    vector_db = os.getenv("VECTOR_DB", "none").lower()
+    vector_db = os.getenv("VECTOR_DB", "faiss").lower()
     embedding_model = os.getenv("EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B")
     if vector_db == "faiss":
         from app.services.faiss_adapter import FaissAdapter
