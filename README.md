@@ -198,6 +198,11 @@ hf auth login
    # EXPOSE_RETRIEVE_ENDPOINT=true python run_server.py
    ```
 
+   출력에 vector store ducuments count > 0 확인.
+   🔌 Loading vector store adapter...
+   ✅ Vector store loaded. count=4407
+
+
 2) **Start UI**
 
    ```bash
