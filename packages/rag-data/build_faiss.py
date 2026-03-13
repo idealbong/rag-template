@@ -17,6 +17,7 @@ BATCH_SIZE = 4  # GPU 메모리에 따라 조정 가능
 MAX_WORKERS = min(4, mp.cpu_count())  # CPU 코어 수에 따라 조정
 USE_CUDA = os.getenv("USE_CUDA", "false").lower() == "true"
 FAISS_DISTANCE_STRATEGY = 'cosine'  # or 'euclidean'
+MIN_CHUNK_LENGTH = 20 # 20자 이하 chunk는 정보 부족으로 제외
 
 def load_chunks(path: str):
     with open(path, "r", encoding="utf-8") as f:
@@ -26,7 +27,7 @@ def build_documents(chunks: list[dict]) -> list[Document]:
     documents = []
     for i, chunk in enumerate(chunks):
         chunk_text = chunk.get("chunk_text", "").strip()
-        if len(chunk_text) > 20:
+        if len(chunk_text) > MIN_CHUNK_LENGTH:
             documents.append(Document(
                 page_content=chunk_text,
                 metadata={
