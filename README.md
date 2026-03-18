@@ -202,8 +202,10 @@ hf auth login
    🔌 Loading vector store adapter...
    ✅ Vector store loaded. count=4407
 
+   설정 변경은 ./packages/rag-backend/env.backend.example 참고하여 ./packages/rag-backend/.env 파일 편집하여 수행.
 
-2) **Start UI**
+
+3) **Start UI**
 
    ```bash
    cd packages/rag-frontend
