@@ -34,7 +34,14 @@ def get_pages_in_category(cat_title: str, max_depth=2):
     return results
 
 def save_pages_as_jsonl(pages, output_path="data/wiki.jsonl"):
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    if os.path.isdir(output_path):
+        output_path = os.path.join(output_path, "wiki.jsonl")
+    elif not output_path.endswith(".jsonl"):
+        output_path = f"{output_path}.jsonl"
+    
+    dir_name = os.path.dirname(output_path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         for page in pages:
             record = {
@@ -50,7 +57,15 @@ def save_single_page_as_jsonl(page, output_path="data/wiki_single.jsonl"):
     if not page.exists():
         print(f"❌ 문서 '{page.title}' 가 존재하지 않습니다.")
         return
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    if os.path.isdir(output_path):
+        output_path = os.path.join(output_path, "wiki_single.jsonl")
+    elif not output_path.endswith(".jsonl"):
+        output_path = f"{output_path}.jsonl"
+        
+    dir_name = os.path.dirname(output_path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         record = {
             "title": page.title,

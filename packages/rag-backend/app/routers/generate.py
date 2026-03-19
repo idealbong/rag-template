@@ -3,12 +3,14 @@ from app.models import GenerateRequest, GenerateResponse
 from app.services.retrieval_service import RetrievalService
 from app.services.llm_service import LLMService
 import time
+from langfuse import observe
 
 router = APIRouter()
 retrieval_service = RetrievalService()
 llm_service = LLMService()
 
 @router.post("/generate", response_model=GenerateResponse)
+@observe()
 async def generate(request: GenerateRequest):
     """
     사용자 질문에 대한 LLM 응답 생성 (RAG 옵션 포함)

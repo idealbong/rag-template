@@ -7,6 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.prompt_values import ChatPromptValue
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import BaseMessage
+from langfuse import observe
 
 from app.models import DocumentChunk
 
@@ -76,6 +77,7 @@ class LLMService:
         absolute_path = os.path.join(backend_dir, relative_path)
         return os.path.normpath(absolute_path)
     
+    @observe()
     def create_prompt(self, question: str, reference_documents: List[DocumentChunk]) -> ChatPromptValue:
         """
         질문과 컨텍스트를 바탕으로 프롬프트를 생성합니다.
@@ -104,6 +106,7 @@ class LLMService:
             prompt = self.prompt_template.invoke({"context": context, "question": question})
         return prompt
     
+    @observe()
     async def generate(self, prompt: ChatPromptValue, max_tokens: int = None) -> str:
         """
         프롬프트를 바탕으로 답변을 생성합니다.

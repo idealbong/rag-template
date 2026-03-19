@@ -7,14 +7,14 @@ Focus: clear **contracts** and **separation of concerns**. Implementation is int
 
 ```text
 packages/
-  rag-data/        # Ingest & chunk → wikipedia 데이터 수집 + chunking + FAISS index
+  rag-data/        # Ingest & chunk → wikipedia 데이터 수집 + chunking + pgvector (or FAISS) index
   rag-backend/     # Unified FastAPI backend: /, /health, /docs, /redoc, /api/generate (+ optional /api/retrieve)
   rag-frontend/    # Minimal Vite+React UI calling /api/generate
 ```
 
 ### Why this split?
 
-- **rag-data** produces FAISS index that are **read-only** for runtime services.
+- **rag-data** produces pgvector (or FAISS) indices that are **read-only** for runtime services.
 - **rag-backend** orchestrates retrieval + prompt + LLM and returns **answer + reference documents** (and can expose `/api/retrieve` for internal tuning).
 - **rag-frontend** shows the answer and references.
 
@@ -35,8 +35,9 @@ packages/
   data/
     wiki.jsonl             # output of collect_wiki.py
     chunks.jsonl           # output of build_chunks.py
-    faiss_index/           # output of build_faiss.py
+    faiss_index/           # output of build_faiss.py (if using FAISS)
   ```
+  *(Note: pgvector data is stored inside the PostgreSQL Docker container)*
 
 ## APIs
 
@@ -202,7 +203,15 @@ hf auth login
    🔌 Loading vector store adapter...
    ✅ Vector store loaded. count=4407
 
-   설정 변경은 ./packages/rag-backend/env.backend.example 참고하여 ./packages/rag-backend/.env 파일 편집하여 수행.
+   설정 변경은 `./packages/rag-backend/env.backend.example` 참고하여 `./packages/rag-backend/.env` 파일 편집하여 수행.
+
+   > [!IMPORTANT]
+   > **pgvector 데이터베이스 실행 (필수)**
+   > 프로젝트의 기본 검색 엔진은 PostgreSQL (pgvector)입니다. 백엔드 서버를 띄우기 전에 도커 컨테이너를 실행해야 합니다.
+   > ```bash
+   > docker run --name pgvector-db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=rag_db -p 5432:5432 -d pgvector/pgvector:pg16-trixie
+   > ```
+   > *(사전 구축된 로컬 파일 기반인 FAISS를 사용하려면 `.env` 파일에서 `VECTOR_DB=faiss`로 변경하세요)*
 
 
 3) **Start UI**
@@ -213,6 +222,22 @@ hf auth login
    npm run dev
    # open http://localhost:5173
    ```
+
+---
+
+### Backend: Monitoring & Tracing (Langfuse)
+
+본 템플릿은 백엔드의 RAG 흐름(검색, 프롬프트 생성, LLM 추론 시간 등)을 실시간으로 추적하기 위해 **Langfuse**와 구조적으로 연동되어 있습니다.
+
+#### 설정 방법
+1. [Langfuse Cloud](https://cloud.langfuse.com/) (또는 해당 접속 리전, 예: `https://eu.langfuse.com`) 프로젝트 설정에서 API Key를 발급받습니다.
+2. `packages/rag-backend/.env` 파일 맨 아래에 다음 정보를 추가합니다:
+   ```env
+   LANGFUSE_SECRET_KEY=sk-lf-...
+   LANGFUSE_PUBLIC_KEY=pk-lf-...
+   LANGFUSE_HOST=https://eu.langfuse.com
+   ```
+3. 백엔드 서버를 켜두고 프론트엔드에서 질의를 남기면, 자동으로 Langfuse 대시보드 **Traces** 탭에 상세한 로그 조각(Spans)과 소요 시간이 기록됩니다.
 
 ---
 

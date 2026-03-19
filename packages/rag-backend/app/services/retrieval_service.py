@@ -5,6 +5,7 @@ from functools import partial
 from app.models import DocumentChunk
 from sentence_transformers import CrossEncoder
 from .void_retrieval_adapter import VoidRetrievalAdapter
+from langfuse import observe
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -27,12 +28,21 @@ class VectorStoreAdapter(Protocol):
 
 
 def make_vector_store_adapter() -> VectorStoreAdapter:
-    vector_db = os.getenv("VECTOR_DB", "faiss").lower()
+    vector_db = os.getenv("VECTOR_DB", "pgvector").lower()
     embedding_model = os.getenv("EMBEDDING_MODEL", "Qwen/Qwen3-Embedding-0.6B")
     if vector_db == "faiss":
         from app.services.faiss_adapter import FaissAdapter
         index_dir = os.getenv("FAISS_INDEX_DIR", "data/faiss_index")
         return FaissAdapter(index_dir=index_dir, embedding_model_name=embedding_model)
+    elif vector_db == "pgvector":
+        from app.services.pgvector_adapter import PGVectorAdapter
+        connection_string = os.getenv("PG_CONNECTION_STRING", "postgresql+psycopg://postgres:postgres@localhost:5432/rag_db")
+        collection_name = os.getenv("PG_COLLECTION_NAME", "rag_collection")
+        return PGVectorAdapter(
+            connection_string=connection_string,
+            collection_name=collection_name,
+            embedding_model_name=embedding_model
+        )
     print(f"Unsupported VECTOR_DB: {vector_db}")
     return VoidRetrievalAdapter()
 
@@ -57,6 +67,7 @@ class RetrievalService:
             print(f"❌ Error initializing RetrievalService: {e}")
             self.vector_store = VoidRetrievalAdapter()
 
+    @observe()
     async def retrieve(self,
                     query: str,
                     candidate_k: Optional[int] = None,  # Optional rerank candidates
