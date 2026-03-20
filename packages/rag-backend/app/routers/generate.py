@@ -10,7 +10,7 @@ retrieval_service = RetrievalService()
 llm_service = LLMService()
 
 @router.post("/generate", response_model=GenerateResponse)
-@observe()
+@observe(as_type="generation")
 async def generate(request: GenerateRequest):
     """
     사용자 질문에 대한 LLM 응답 생성 (RAG 옵션 포함)
@@ -38,7 +38,7 @@ async def generate(request: GenerateRequest):
         )
         
         # LLM을 이용한 답변 생성
-        response = await llm_service.generate(prompt, max_tokens=request.max_tokens)
+        response = await llm_service.llm_generate(prompt, max_tokens=request.max_tokens)
         
         elapsed_ms = int((time.time() - start_time) * 1000)
         

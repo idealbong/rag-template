@@ -107,7 +107,7 @@ class LLMService:
         return prompt
     
     @observe()
-    async def generate(self, prompt: ChatPromptValue, max_tokens: int = None) -> str:
+    async def llm_generate(self, prompt: ChatPromptValue, max_tokens: int = None) -> str:
         """
         프롬프트를 바탕으로 답변을 생성합니다.
         
